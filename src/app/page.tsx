@@ -28,10 +28,10 @@ export default function LandingPage() {
         {/* Hero Section */}
         <section className="py-24 px-6 text-center space-y-8 max-w-5xl mx-auto">
           <h1 className="text-5xl md:text-7xl font-extrabold tracking-tight text-balance bg-gradient-to-br from-foreground to-primary bg-clip-text text-transparent pb-2">
-            Your Pet's Health, <br /> Organized.
+            Your Pet&apos;s Health, <br /> Organized.
           </h1>
           <p className="text-xl text-muted-foreground max-w-2xl mx-auto text-balance">
-            Peace of mind for every pet parent. Track vaccinations, appointments, and health records in one secure place.
+            Peace of mind for every pet parent. Manage your pet&apos;s health, vaccinations, and daily needs in one beautiful place.
           </p>
           <div className="flex justify-center gap-4">
             <Button size="lg" className="rounded-full text-base px-8 h-12 shadow-lg shadow-primary/25" asChild>
@@ -83,7 +83,7 @@ export default function LandingPage() {
                 <CardHeader>
                   <ShieldCheck className="h-12 w-12 text-primary mb-4" />
                   <CardTitle className="text-2xl">Bank-grade Security</CardTitle>
-                  <CardDescription className="text-base">Your data is encrypted and safe. Only you have access to your pet's sensitive information.</CardDescription>
+                  <CardDescription className="text-base">Your data is encrypted and safe. Only you have access to your pet&apos;s sensitive information.</CardDescription>
                 </CardHeader>
                 <div className="p-6">
                   <Lock className="h-32 w-32 text-primary/10 mx-auto" />
@@ -98,7 +98,7 @@ export default function LandingPage() {
                   </div>
                   <div>
                     <CardTitle>Weight Tracking</CardTitle>
-                    <CardDescription>Monitor your pet's growth over time.</CardDescription>
+                    <CardDescription>Monitor your pet&apos;s growth over time.</CardDescription>
                   </div>
                 </CardHeader>
               </Card>
@@ -109,7 +109,7 @@ export default function LandingPage() {
         {/* Footer CTA */}
         <section className="py-24 px-6 text-center bg-primary text-primary-foreground">
           <div className="max-w-3xl mx-auto space-y-8">
-            <h2 className="text-4xl font-bold">Start Your Pet's Digital Journal Now</h2>
+            <h2 className="text-4xl font-bold">Start Your Pet&apos;s Digital Journal Now</h2>
             <div className="flex justify-center gap-12 text-primary-foreground/80">
               <div>
                 <p className="text-3xl font-bold">10K+</p>
@@ -119,6 +119,32 @@ export default function LandingPage() {
                 <p className="text-3xl font-bold">99%</p>
                 <p className="text-sm">Happy Owners</p>
               </div>
+            </div>
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mt-12">
+              <Card>
+                <CardContent className="pt-6">
+                  <p className="text-muted-foreground italic">
+                    &quot;I love how easy it is to keep track of Max&apos;s vaccinations. The reminders are a lifesaver!&quot;
+                  </p>
+                  <p className="font-semibold mt-4">- Sarah J.</p>
+                </CardContent>
+              </Card>
+              <Card>
+                <CardContent className="pt-6">
+                  <p className="text-muted-foreground italic">
+                    &quot;The health log feature helps me communicate better with my vet. Highly recommended.&quot;
+                  </p>
+                  <p className="font-semibold mt-4">- Mike T.</p>
+                </CardContent>
+              </Card>
+              <Card>
+                <CardContent className="pt-6">
+                  <p className="text-muted-foreground italic">
+                    &quot;Finally, an app that doesn&apos;t feel like a spreadsheet. It&apos;s actually fun to use!&quot;
+                  </p>
+                  <p className="font-semibold mt-4">- Emily R.</p>
+                </CardContent>
+              </Card>
             </div>
             <Button size="lg" variant="secondary" className="rounded-full px-12 h-14 text-lg font-semibold text-primary" asChild>
               <Link href="/signup">Create Free Account</Link>

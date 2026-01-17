@@ -1,11 +1,10 @@
 "use client"
 
-import Link from "next/link"
-import { usePathname } from "next/navigation"
-import { Home, PawPrint, Calendar, Settings, User } from "lucide-react"
-import { cn } from "@/lib/utils"
 import { Button } from "@/components/ui/button"
 import { ScrollArea } from "@/components/ui/scroll-area"
+import { Calendar, Home, PawPrint, Settings, User } from "lucide-react"
+import Link from "next/link"
+import { usePathname } from "next/navigation"
 
 const sidebarItems = [
   { name: "Dashboard", href: "/dashboard", icon: Home },
