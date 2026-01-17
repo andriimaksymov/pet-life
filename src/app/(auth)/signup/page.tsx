@@ -1,10 +1,13 @@
 "use client"
 
 import Link from "next/link"
+import { useRouter } from "next/navigation"
+import { useState } from "react"
 import { useForm } from "react-hook-form"
 import { zodResolver } from "@hookform/resolvers/zod"
 import * as z from "zod"
 import { PawPrint } from "lucide-react"
+import { signIn } from "next-auth/react"
 
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
@@ -22,6 +25,10 @@ const signupSchema = z.object({
 })
 
 export default function SignupPage() {
+  const router = useRouter()
+  const [error, setError] = useState<string | null>(null)
+  const [isLoading, setIsLoading] = useState(false)
+
   const form = useForm<z.infer<typeof signupSchema>>({
     resolver: zodResolver(signupSchema),
     defaultValues: {
@@ -32,9 +39,48 @@ export default function SignupPage() {
     },
   })
 
-  function onSubmit(values: z.infer<typeof signupSchema>) {
-    console.log(values)
-    // TODO: Implement actual signup logic
+  async function onSubmit(values: z.infer<typeof signupSchema>) {
+    setError(null)
+    setIsLoading(true)
+
+    try {
+      // Create user account
+      const response = await fetch("/api/auth/signup", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          name: values.name,
+          email: values.email,
+          password: values.password,
+        }),
+      })
+
+      const data = await response.json()
+
+      if (!response.ok) {
+        setError(data.error || "Failed to create account")
+        setIsLoading(false)
+        return
+      }
+
+      // Auto-login after successful signup
+      const result = await signIn("credentials", {
+        email: values.email,
+        password: values.password,
+        redirect: false,
+      })
+
+      if (result?.error) {
+        setError("Account created but login failed. Please try logging in manually.")
+      } else {
+        router.push("/dashboard")
+        router.refresh()
+      }
+    } catch (error) {
+      setError("An error occurred. Please try again.")
+    } finally {
+      setIsLoading(false)
+    }
   }
 
   return (
@@ -51,6 +97,11 @@ export default function SignupPage() {
         </CardDescription>
       </CardHeader>
       <CardContent className="space-y-4">
+        {error && (
+          <div className="bg-destructive/10 border border-destructive/50 text-destructive px-4 py-3 rounded-lg text-sm">
+            {error}
+          </div>
+        )}
         <Form {...form}>
           <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
             <FormField
@@ -60,7 +111,7 @@ export default function SignupPage() {
                 <FormItem>
                   <FormLabel>Full Name</FormLabel>
                    <FormControl>
-                    <Input placeholder="John Owner" {...field} className="bg-background/50 border-input/50" />
+                    <Input placeholder="John Owner" {...field} className="bg-background/50 border-input/50" disabled={isLoading} />
                   </FormControl>
                   <FormMessage />
                 </FormItem>
@@ -73,7 +124,7 @@ export default function SignupPage() {
                 <FormItem>
                   <FormLabel>Email</FormLabel>
                   <FormControl>
-                    <Input placeholder="name@example.com" {...field} className="bg-background/50 border-input/50" />
+                    <Input placeholder="name@example.com" {...field} className="bg-background/50 border-input/50" disabled={isLoading} />
                   </FormControl>
                   <FormMessage />
                 </FormItem>
@@ -86,7 +137,7 @@ export default function SignupPage() {
                 <FormItem>
                   <FormLabel>Password</FormLabel>
                    <FormControl>
-                    <Input type="password" placeholder="••••••••" {...field} className="bg-background/50 border-input/50" />
+                    <Input type="password" placeholder="••••••••" {...field} className="bg-background/50 border-input/50" disabled={isLoading} />
                   </FormControl>
                   <FormMessage />
                 </FormItem>
@@ -115,8 +166,8 @@ export default function SignupPage() {
               )}
             />
 
-            <Button type="submit" className="w-full h-11 text-base rounded-lg shadow-lg shadow-primary/20 font-semibold" size="lg">
-              Sign Up
+            <Button type="submit" className="w-full h-11 text-base rounded-lg shadow-lg shadow-primary/20 font-semibold" size="lg" disabled={isLoading}>
+              {isLoading ? "Creating account..." : "Sign Up"}
             </Button>
           </form>
         </Form>

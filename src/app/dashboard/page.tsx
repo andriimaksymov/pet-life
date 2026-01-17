@@ -1,15 +1,42 @@
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
-import { Plus, Bell } from "lucide-react"
+import { Plus, Bell, LogOut } from "lucide-react"
+import { auth, signOut } from "@/auth"
+import { redirect } from "next/navigation"
 
-export default function DashboardPage() {
+export default async function DashboardPage() {
+  const session = await auth()
+
+  if (!session?.user) {
+    redirect("/login")
+  }
+
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between">
-        <h1 className="text-3xl font-bold tracking-tight">Dashboard</h1>
-        <Button>
-          <Plus className="mr-2 h-4 w-4" /> Add Pet
-        </Button>
+        <div>
+          <h1 className="text-3xl font-bold tracking-tight">
+            Welcome back, {session.user.name || session.user.email}!
+          </h1>
+          <p className="text-muted-foreground mt-1">
+            Manage your pets and their health records
+          </p>
+        </div>
+        <div className="flex gap-2">
+          <form
+            action={async () => {
+              "use server"
+              await signOut({ redirectTo: "/" })
+            }}
+          >
+            <Button variant="outline" type="submit">
+              <LogOut className="mr-2 h-4 w-4" /> Sign Out
+            </Button>
+          </form>
+          <Button>
+            <Plus className="mr-2 h-4 w-4" /> Add Pet
+          </Button>
+        </div>
       </div>
 
       <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">

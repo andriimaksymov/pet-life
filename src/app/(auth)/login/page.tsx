@@ -1,10 +1,13 @@
 "use client"
 
 import Link from "next/link"
+import { useRouter } from "next/navigation"
+import { useState } from "react"
 import { useForm } from "react-hook-form"
 import { zodResolver } from "@hookform/resolvers/zod"
 import * as z from "zod"
 import { PawPrint } from "lucide-react"
+import { signIn } from "next-auth/react"
 
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
@@ -17,6 +20,10 @@ const loginSchema = z.object({
 })
 
 export default function LoginPage() {
+  const router = useRouter()
+  const [error, setError] = useState<string | null>(null)
+  const [isLoading, setIsLoading] = useState(false)
+
   const form = useForm<z.infer<typeof loginSchema>>({
     resolver: zodResolver(loginSchema),
     defaultValues: {
@@ -25,9 +32,38 @@ export default function LoginPage() {
     },
   })
 
-  function onSubmit(values: z.infer<typeof loginSchema>) {
-    console.log(values)
-    // TODO: Implement actual login logic
+  async function onSubmit(values: z.infer<typeof loginSchema>) {
+    setError(null)
+    setIsLoading(true)
+
+    try {
+      const result = await signIn("credentials", {
+        email: values.email,
+        password: values.password,
+        redirect: false,
+      })
+
+      if (result?.error) {
+        setError("Invalid email or password")
+      } else {
+        router.push("/dashboard")
+        router.refresh()
+      }
+    } catch (error) {
+      setError("An error occurred. Please try again.")
+    } finally {
+      setIsLoading(false)
+    }
+  }
+
+  async function handleSocialLogin(provider: "google" | "apple") {
+    setIsLoading(true)
+    try {
+      await signIn(provider, { callbackUrl: "/dashboard" })
+    } catch (error) {
+      setError("Social login failed. Please try again.")
+      setIsLoading(false)
+    }
   }
 
   return (
@@ -44,6 +80,11 @@ export default function LoginPage() {
         </CardDescription>
       </CardHeader>
       <CardContent className="space-y-4">
+        {error && (
+          <div className="bg-destructive/10 border border-destructive/50 text-destructive px-4 py-3 rounded-lg text-sm">
+            {error}
+          </div>
+        )}
         <Form {...form}>
           <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
             <FormField
@@ -53,7 +94,7 @@ export default function LoginPage() {
                 <FormItem>
                   <FormLabel>Email</FormLabel>
                   <FormControl>
-                    <Input placeholder="name@example.com" {...field} className="bg-background/50 border-input/50" />
+                    <Input placeholder="name@example.com" {...field} className="bg-background/50 border-input/50" disabled={isLoading} />
                   </FormControl>
                   <FormMessage />
                 </FormItem>
@@ -66,7 +107,7 @@ export default function LoginPage() {
                 <FormItem>
                   <FormLabel>Password</FormLabel>
                    <FormControl>
-                    <Input type="password" placeholder="••••••••" {...field} className="bg-background/50 border-input/50" />
+                    <Input type="password" placeholder="••••••••" {...field} className="bg-background/50 border-input/50" disabled={isLoading} />
                   </FormControl>
                   <FormMessage />
                 </FormItem>
@@ -77,8 +118,8 @@ export default function LoginPage() {
                     Forgot Password?
                  </Link>
              </div>
-            <Button type="submit" className="w-full h-11 text-base rounded-lg shadow-lg shadow-primary/20 font-semibold" size="lg">
-              Sign In
+            <Button type="submit" className="w-full h-11 text-base rounded-lg shadow-lg shadow-primary/20 font-semibold" size="lg" disabled={isLoading}>
+              {isLoading ? "Signing in..." : "Sign In"}
             </Button>
           </form>
         </Form>
@@ -93,10 +134,10 @@ export default function LoginPage() {
         </div>
 
         <div className="grid grid-cols-2 gap-4">
-          <Button variant="outline" className="w-full">
+          <Button variant="outline" className="w-full" onClick={() => handleSocialLogin("google")} disabled={isLoading} type="button">
              Google
           </Button>
-          <Button variant="outline" className="w-full">
+          <Button variant="outline" className="w-full" onClick={() => handleSocialLogin("apple")} disabled={isLoading} type="button">
              Apple
           </Button>
         </div>
