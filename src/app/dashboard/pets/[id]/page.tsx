@@ -93,7 +93,7 @@ export default async function PetDetailsPage({ params }: PetDetailsPageProps) {
                     // eslint-disable-next-line @next/next/no-img-element
                     <img src={pet.photoUrl} alt={pet.name} className="h-full w-full object-cover" />
                 ) : (
-                    <span className="text-6xl">{pet.species === "Dog" ? "🐕" : pet.species === "Cat" ? "🐈" : "🐾"}</span>
+                    <span className="text-6xl">{pet.species === "DOG" ? "🐕" : pet.species === "CAT" ? "🐈" : pet.species === "RABBIT" ? "🐰" : pet.species === "BIRD" ? "🐦" : pet.species === "REPTILE" ? "🦎" : "🐾"}</span>
                 )}
                 </div>
                 <CardTitle className="text-center text-2xl">{pet.name}</CardTitle>

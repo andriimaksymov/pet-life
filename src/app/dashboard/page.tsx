@@ -5,7 +5,8 @@ import { Bell, LogOut } from "lucide-react"
 import { AddPetModal } from "@/components/modals/add-pet-modal"
 import { auth, signOut } from "@/auth"
 import { redirect } from "next/navigation"
-import Link from "next/link"
+import { QuickActions } from "@/components/dashboard/quick-actions"
+import { SmartPetCard } from "@/components/dashboard/smart-pet-card"
 
 export default async function DashboardPage() {
   const session = await auth()
@@ -18,10 +19,21 @@ export default async function DashboardPage() {
     where: {
       userId: session.user.id,
     },
+    include: {
+      healthRecords: {
+        orderBy: {
+          date: 'desc'
+        },
+        take: 10,
+      }
+    },
     orderBy: {
       createdAt: "desc",
     },
   });
+
+  // Simple list for quick actions
+  const petList = pets.map(p => ({ id: p.id, name: p.name }));
 
   return (
     <div className="space-y-6">
@@ -43,6 +55,18 @@ export default async function DashboardPage() {
         </div>
       </div>
 
+      {/* Quick Actions */}
+      {pets.length > 0 && (
+        <Card>
+          <CardHeader className="pb-3">
+            <CardTitle className="text-lg">Quick Actions</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <QuickActions pets={petList} />
+          </CardContent>
+        </Card>
+      )}
+
       <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
         {/* Pets Card */}
         <Card className="col-span-2">
@@ -57,28 +81,21 @@ export default async function DashboardPage() {
                 <p className="text-sm">Add your first pet to get started!</p>
               </div>
             ) : (
-              <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-                {pets.map((pet) => (
-                  <Link
-                    key={pet.id}
-                    href={`/dashboard/pets/${pet.id}`}
-                    className="block transition-transform hover:scale-[1.02]"
-                  >
-                    <div
-                      className="flex items-center space-x-4 rounded-lg border p-4 hover:bg-accent/50 transition-colors"
-                    >
-                      <div className="h-12 w-12 rounded-full bg-primary/10 flex items-center justify-center text-xl">
-                        {pet.species === "Dog" ? "🐕" : pet.species === "Cat" ? "🐈" : "🐾"}
-                      </div>
-                      <div className="flex-1 space-y-1">
-                        <p className="text-sm font-medium leading-none">{pet.name}</p>
-                        <p className="text-sm text-muted-foreground">
-                          {pet.breed || pet.species}
-                        </p>
-                      </div>
-                    </div>
-                  </Link>
-                ))}
+              <div className="grid gap-4 sm:grid-cols-2">
+                {pets.map((pet) => {
+                  const vaccinationCount = pet.healthRecords.filter(
+                    (r) => r.type === "VACCINATION"
+                  ).length;
+                  
+                  return (
+                    <SmartPetCard
+                      key={pet.id}
+                      pet={pet}
+                      healthRecords={pet.healthRecords}
+                      vaccinationCount={vaccinationCount}
+                    />
+                  );
+                })}
               </div>
             )}
           </CardContent>
@@ -93,20 +110,26 @@ export default async function DashboardPage() {
           </CardHeader>
           <CardContent>
              <div className="space-y-4">
-                <div className="flex items-center justify-between gap-4 rounded-md border p-3 bg-accent/10">
-                   <div className="space-y-1">
-                      <p className="text-sm font-medium leading-none">Max - Vaccination</p>
-                      <p className="text-xs text-muted-foreground">Tomorrow, 10:00 AM</p>
-                   </div>
-                   <div className="h-2 w-2 rounded-full bg-orange-500" />
-                </div>
-                <div className="flex items-center justify-between gap-4 rounded-md border p-3">
-                   <div className="space-y-1">
-                      <p className="text-sm font-medium leading-none">Bella - Grooming</p>
-                      <p className="text-xs text-muted-foreground">Sat, Jan 12</p>
-                   </div>
-                   <div className="h-2 w-2 rounded-full bg-blue-500" />
-                </div>
+                {pets.length === 0 ? (
+                  <div className="flex flex-col items-center justify-center py-6 text-center text-muted-foreground">
+                    <p className="text-sm">Add a pet to see reminders</p>
+                  </div>
+                ) : (
+                  <>
+                    <div className="flex items-center justify-between gap-4 rounded-md border p-3 bg-accent/10">
+                       <div className="space-y-1">
+                          <p className="text-sm font-medium leading-none">{pets[0]?.name || 'Pet'} - Vaccination</p>
+                          <p className="text-xs text-muted-foreground">Coming soon</p>
+                       </div>
+                       <div className="h-2 w-2 rounded-full bg-orange-500" />
+                    </div>
+                    <div className="text-center">
+                      <p className="text-xs text-muted-foreground">
+                        Reminder system coming soon!
+                      </p>
+                    </div>
+                  </>
+                )}
              </div>
           </CardContent>
         </Card>

@@ -7,6 +7,21 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
+enum Species {
+  DOG
+  CAT
+  RABBIT
+  BIRD
+  REPTILE
+  OTHER
+}
+
+enum Gender {
+  MALE
+  FEMALE
+  UNKNOWN
+}
+
 model User {
   id            String    @id @default(cuid())
   email         String    @unique
@@ -59,17 +74,27 @@ model VerificationToken {
 
 model Pet {
   id            String         @id @default(cuid())
-  name          String
-  species       String
-  breed         String?
-  birthDate     DateTime?
-  weight        Float?
-  photoUrl      String?
   userId        String
+  name          String
+  species       Species
+  breed         String?
+  gender        Gender         @default(UNKNOWN)
+  isNeutered    Boolean        @default(false)
+  birthDate     DateTime?
+  weight        Float?         // Latest weight in kg
+  microchipId   String?        @unique
+  photoUrl      String?
+  allergies     String[]
+  metadata      Json?          // For species-specific data
+  
   user          User           @relation(fields: [userId], references: [id], onDelete: Cascade)
   healthRecords HealthRecord[]
+  reminders     Reminder[]
+  
   createdAt     DateTime       @default(now())
   updatedAt     DateTime       @updatedAt
+
+  @@index([userId])
 }
 
 enum HealthRecordType {
@@ -90,4 +115,16 @@ model HealthRecord {
   pet       Pet              @relation(fields: [petId], references: [id], onDelete: Cascade)
   createdAt DateTime         @default(now())
   updatedAt DateTime         @updatedAt
+}
+
+model Reminder {
+  id          String   @id @default(cuid())
+  title       String
+  description String?
+  dueDate     DateTime
+  isCompleted Boolean  @default(false)
+  petId       String
+  pet         Pet      @relation(fields: [petId], references: [id], onDelete: Cascade)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
 }
