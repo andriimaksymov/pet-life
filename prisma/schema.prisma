@@ -72,13 +72,22 @@ model Pet {
   updatedAt     DateTime       @updatedAt
 }
 
+enum HealthRecordType {
+  VACCINATION
+  MEDICATION
+  VISIT
+  OTHER
+}
+
 model HealthRecord {
-  id        String   @id @default(cuid())
-  type      String   // Vaccination, Checkup, etc.
+  id        String           @id @default(cuid())
+  type      HealthRecordType
+  title     String
   date      DateTime
   notes     String?
+  metadata  Json?            // For flexible fields like dosage, nextDueDate, provider
   petId     String
-  pet       Pet      @relation(fields: [petId], references: [id], onDelete: Cascade)
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  pet       Pet              @relation(fields: [petId], references: [id], onDelete: Cascade)
+  createdAt DateTime         @default(now())
+  updatedAt DateTime         @updatedAt
 }

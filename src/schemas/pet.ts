@@ -10,6 +10,7 @@ export const PetSchema = z.object({
   breed: z.string().optional(),
   birthDate: z.date().optional(),
   weight: z.coerce.number().min(0).optional(),
+  photoUrl: z.string().url().optional().or(z.literal("")),
 });
 
 export type PetInput = z.infer<typeof PetSchema>;

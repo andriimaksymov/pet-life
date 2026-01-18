@@ -5,6 +5,7 @@ import { Bell, LogOut } from "lucide-react"
 import { AddPetModal } from "@/components/modals/add-pet-modal"
 import { auth, signOut } from "@/auth"
 import { redirect } from "next/navigation"
+import Link from "next/link"
 
 export default async function DashboardPage() {
   const session = await auth()
@@ -58,20 +59,25 @@ export default async function DashboardPage() {
             ) : (
               <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
                 {pets.map((pet) => (
-                  <div
+                  <Link
                     key={pet.id}
-                    className="flex items-center space-x-4 rounded-lg border p-4 hover:bg-accent/50 transition-colors"
+                    href={`/dashboard/pets/${pet.id}`}
+                    className="block transition-transform hover:scale-[1.02]"
                   >
-                    <div className="h-12 w-12 rounded-full bg-primary/10 flex items-center justify-center text-xl">
-                      {pet.species === "Dog" ? "🐕" : pet.species === "Cat" ? "🐈" : "🐾"}
+                    <div
+                      className="flex items-center space-x-4 rounded-lg border p-4 hover:bg-accent/50 transition-colors"
+                    >
+                      <div className="h-12 w-12 rounded-full bg-primary/10 flex items-center justify-center text-xl">
+                        {pet.species === "Dog" ? "🐕" : pet.species === "Cat" ? "🐈" : "🐾"}
+                      </div>
+                      <div className="flex-1 space-y-1">
+                        <p className="text-sm font-medium leading-none">{pet.name}</p>
+                        <p className="text-sm text-muted-foreground">
+                          {pet.breed || pet.species}
+                        </p>
+                      </div>
                     </div>
-                    <div className="flex-1 space-y-1">
-                      <p className="text-sm font-medium leading-none">{pet.name}</p>
-                      <p className="text-sm text-muted-foreground">
-                        {pet.breed || pet.species}
-                      </p>
-                    </div>
-                  </div>
+                  </Link>
                 ))}
               </div>
             )}

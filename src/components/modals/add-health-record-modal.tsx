@@ -1,19 +1,19 @@
 "use client";
 
-import { useState, useTransition } from "react";
-import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { format } from "date-fns";
-import { CalendarIcon, Loader2, Plus } from "lucide-react";
+import { CalendarIcon, Plus } from "lucide-react";
+import { useState, useTransition } from "react";
+import { useForm } from "react-hook-form";
+import * as z from "zod";
 
-import { PetSchema, PetInput } from "@/schemas/pet";
-import { createPet } from "@/actions/pet";
+import { createHealthRecord } from "@/actions/health-record";
 import { Button } from "@/components/ui/button";
+import { Calendar } from "@/components/ui/calendar";
 import {
   Dialog,
   DialogContent,
   DialogDescription,
-  DialogFooter,
   DialogHeader,
   DialogTitle,
   DialogTrigger,
@@ -28,44 +28,55 @@ import {
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "@/components/ui/popover";
+import {
   Select,
   SelectContent,
   SelectItem,
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import {
-  Popover,
-  PopoverContent,
-  PopoverTrigger,
-} from "@/components/ui/popover";
-import { Calendar } from "@/components/ui/calendar";
+import { Textarea } from "@/components/ui/textarea";
 import { cn } from "@/lib/utils";
+import { HealthRecordSchema } from "@/schemas/health-record";
 
-export function AddPetModal() {
+// We need to infer the type for the form, but omit metadata for simpler handling in valid
+const FormSchema = HealthRecordSchema;
+
+interface AddHealthRecordModalProps {
+  petId: string;
+}
+
+export function AddHealthRecordModal({ petId }: AddHealthRecordModalProps) {
   const [open, setOpen] = useState(false);
   const [isPending, startTransition] = useTransition();
 
-  const form = useForm<PetInput>({
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    resolver: zodResolver(PetSchema) as any,
+  const form = useForm<z.infer<typeof FormSchema>>({
+    resolver: zodResolver(FormSchema),
     defaultValues: {
-      name: "",
-      species: "",
-      weight: undefined,
-      breed: "",
+      petId: petId,
+      type: "VISIT",
+      title: "",
+      notes: "",
+      date: new Date(),
     },
   });
 
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const formControl = form.control as any;
 
-  function onSubmit(data: PetInput) {
+  function onSubmit(data: z.infer<typeof FormSchema>) {
     startTransition(async () => {
-      const result = await createPet(data);
+      const result = await createHealthRecord(data);
+
       if (result.error) {
-        form.setError("root", { message: result.error });
+        // toast.error(result.error);
+        alert(result.error); // Fallback for now if no toast
       } else {
+        // toast.success("Record added successfully!");
         setOpen(false);
         form.reset();
       }
@@ -76,116 +87,65 @@ export function AddPetModal() {
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger asChild>
         <Button>
-          <Plus className="mr-2 h-4 w-4" /> Add Pet
+          <Plus className="mr-2 h-4 w-4" /> Add Record
         </Button>
       </DialogTrigger>
       <DialogContent className="sm:max-w-[425px]">
         <DialogHeader>
-          <DialogTitle>Add a New Pet</DialogTitle>
+          <DialogTitle>Add Health Record</DialogTitle>
           <DialogDescription>
-            Enter your pet&apos;s details to start tracking their health.
+            Log a vaccination, vet visit, or medication for your pet.
           </DialogDescription>
         </DialogHeader>
         <Form {...form}>
           <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
-            { }
-            <FormField
+             <FormField
               control={formControl}
-              name="name"
+              name="type"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Name</FormLabel>
-                  <FormControl>
-                    <Input placeholder="Max" {...field} />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-             { }
-            <FormField
-              control={formControl}
-              name="species"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Species</FormLabel>
+                  <FormLabel>Record Type</FormLabel>
                   <Select
                     onValueChange={field.onChange}
                     defaultValue={field.value}
                   >
                     <FormControl>
                       <SelectTrigger>
-                        <SelectValue placeholder="Select species" />
+                        <SelectValue placeholder="Select type" />
                       </SelectTrigger>
                     </FormControl>
                     <SelectContent>
-                      <SelectItem value="Dog">Dog</SelectItem>
-                      <SelectItem value="Cat">Cat</SelectItem>
-                      <SelectItem value="Bird">Bird</SelectItem>
-                      <SelectItem value="Other">Other</SelectItem>
+                      <SelectItem value="VACCINATION">Vaccination</SelectItem>
+                      <SelectItem value="MEDICATION">Medication</SelectItem>
+                      <SelectItem value="VISIT">Vet Visit</SelectItem>
+                      <SelectItem value="OTHER">Other</SelectItem>
                     </SelectContent>
                   </Select>
                   <FormMessage />
                 </FormItem>
               )}
             />
-             <div className="grid grid-cols-2 gap-4">
-               { }
-               <FormField
-                control={formControl}
-                name="breed"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Breed (Optional)</FormLabel>
-                    <FormControl>
-                      <Input placeholder="Labrador" {...field} />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-              { }
-              <FormField
-                control={formControl}
-                name="weight"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Weight (kg)</FormLabel>
-                    <FormControl>
-                      <Input
-                        type="number"
-                        step="0.1"
-                        placeholder="5.5"
-                        {...field}
-                      />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-            </div>
 
             <FormField
               control={formControl}
-              name="photoUrl"
+              name="title"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Photo URL (Optional)</FormLabel>
+                  <FormLabel>Title</FormLabel>
                   <FormControl>
-                    <Input placeholder="https://example.com/photo.jpg" {...field} />
+                    <Input placeholder="e.g. Rabies Vaccine" {...field} />
                   </FormControl>
                   <FormMessage />
                 </FormItem>
               )}
             />
-            
-             { }
-             <FormField
+
+            <FormField
               control={formControl}
-              name="birthDate"
+              name="date"
               render={({ field }) => (
                 <FormItem className="flex flex-col">
-                  <FormLabel>Date of Birth</FormLabel>
+                  <FormLabel>Date</FormLabel>
                   <Popover>
                     <PopoverTrigger asChild>
                       <FormControl>
@@ -213,7 +173,7 @@ export function AddPetModal() {
                         disabled={(date) =>
                           date > new Date() || date < new Date("1900-01-01")
                         }
-                        initialFocus
+                        // initialFocus
                       />
                     </PopoverContent>
                   </Popover>
@@ -222,18 +182,27 @@ export function AddPetModal() {
               )}
             />
 
-            {form.formState.errors.root && (
-              <p className="text-sm font-medium text-destructive">
-                {form.formState.errors.root.message}
-              </p>
-            )}
+            <FormField
+              control={formControl}
+              name="notes"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Notes (Optional)</FormLabel>
+                  <FormControl>
+                    <Textarea 
+                      placeholder="Doctor's notes, dosage instructions, etc." 
+                      className="resize-none"
+                      {...field} 
+                    />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
 
-            <DialogFooter>
-              <Button type="submit" disabled={isPending}>
-                {isPending && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-                Add Pet
-              </Button>
-            </DialogFooter>
+            <Button type="submit" disabled={isPending} className="w-full">
+              {isPending ? "Adding..." : "Save Record"}
+            </Button>
           </form>
         </Form>
       </DialogContent>
